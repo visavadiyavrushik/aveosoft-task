@@ -6,8 +6,10 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import axios from "axios";
 import TableSortLabel from "@mui/material/TableSortLabel";
-import { CustomTablePagination } from "./CustomTablePagination.style";
-
+// import { CustomTablePagination } from "./CustomTablePagination.style";
+// import Pagination from "@mui/material/Pagination";
+// import Stack from "@mui/material/Stack";
+import Pagination from "./Pagination";
 const pageSize = 10;
 
 const BasicTable = (props) => {
@@ -18,8 +20,11 @@ const BasicTable = (props) => {
   const [col, setCol] = useState();
 
   // ***** pagination **********
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(25);
+  // const [page, setPage] = useState(0);
+  // const [rowsPerPage, setRowsPerPage] = useState(25);
+
+  const [currentPage, setCurrentPage] = useState(0);
+  const [postsPerPage] = useState(25);
 
   // ********* searching *********
   const [input, setInput] = useState();
@@ -76,35 +81,41 @@ const BasicTable = (props) => {
 
   // *********************** PAGINATION ***************
 
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
+  // const handleChangePage = (event, newPage) => {
+  //   setPage(newPage);
+  // };
 
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
+  // const handleChangeRowsPerPage = (event) => {
+  //   setRowsPerPage(parseInt(event.target.value, 10));
+  //   setPage(0);
+  // };
+
+
+  // const indexOfLastPost = currentPage * postsPerPage;
+  // const indexOfFirstPost = indexOfLastPost - postsPerPage;
+  
+
+  const paginate = pageNumber => setCurrentPage(pageNumber);
+
 
   // ===================== searching=====================
 
   const handlesearch = (event) => {
     const search = event.target.value;
 
-    if (search.length > 0  ) {
+    if (search.length > 0) {
       const newSearch = user.filter((val) => {
         return val.title.toLowerCase().includes(search.toLowerCase());
       });
       setUser(newSearch);
       setInput(search);
-    }
-    else{
+    } else {
       fetchDetail();
     }
   };
 
   return (
     <>
-      
       <Table aria-label="simple table">
         <TableHead>
           <TableRow>
@@ -131,7 +142,6 @@ const BasicTable = (props) => {
             </TableCell>
 
             <TableCell>
-           
               <TableSortLabel
                 onClick={() => {
                   setCol("title");
@@ -140,7 +150,11 @@ const BasicTable = (props) => {
               >
                 Title{" "}
               </TableSortLabel>
-              <input type="text" placeholder="search.." onChange={handlesearch} />
+              <input
+                type="text"
+                placeholder="search.."
+                onChange={handlesearch}
+              />
             </TableCell>
 
             <TableCell
@@ -155,8 +169,9 @@ const BasicTable = (props) => {
         </TableHead>
 
         <TableBody>
+          {/* .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage) */}
           {user
-            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+            .slice(currentPage * postsPerPage, currentPage * postsPerPage + postsPerPage)
             .map((item) => (
               <TableRow key={item.id}>
                 <TableCell>{item.id}</TableCell>
@@ -167,7 +182,7 @@ const BasicTable = (props) => {
             ))}
         </TableBody>
       </Table>
-
+{/* 
       <CustomTablePagination
         rowsPerPageOptions={[5, 10, 25, { label: "All", value: -1 }]}
         colSpan={3}
@@ -181,7 +196,18 @@ const BasicTable = (props) => {
         }}
         onPageChange={handleChangePage}
         onRowsPerPageChange={handleChangeRowsPerPage}
+      /> */}
+      {/* <Stack spacing={2}>
+        <Pagination count={10} />{" "}
+      </Stack> */}
+
+
+     <Pagination
+        postsPerPage={postsPerPage}
+        totalPosts={user.length}
+        paginate={paginate}
       />
+      
     </>
   );
 };
