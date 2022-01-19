@@ -7,10 +7,8 @@ import TableRow from "@mui/material/TableRow";
 import axios from "axios";
 import TableSortLabel from "@mui/material/TableSortLabel";
 // import { CustomTablePagination } from "./CustomTablePagination.style";
-// import Pagination from "@mui/material/Pagination";
-// import Stack from "@mui/material/Stack";
-import Pagination from "./Pagination";
-const pageSize = 10;
+import Pagination from "@mui/material/Pagination";
+import Stack from "@mui/material/Stack";
 
 const BasicTable = (props) => {
   const [user, setUser] = useState([]);
@@ -20,19 +18,26 @@ const BasicTable = (props) => {
   const [col, setCol] = useState();
 
   // ***** pagination **********
-  // const [page, setPage] = useState(0);
-  // const [rowsPerPage, setRowsPerPage] = useState(25);
 
-  const [currentPage, setCurrentPage] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
   const [postsPerPage] = useState(25);
+  const [filteredData, setFilteredData] = useState([]);
 
   // ********* searching *********
   const [input, setInput] = useState();
-  // const [output, setOutput] = useState('')
 
+  // ***********API call ************
   const fetchDetail = () => {
     axios.get("https://jsonplaceholder.typicode.com/todos").then((res) => {
       setUser(res.data);
+
+      const filteredData = res.data.filter((element, key) => {
+        if (key < postsPerPage && key >= 0) {
+          return element;
+        }
+      });
+
+      setFilteredData(filteredData);
     });
   };
 
@@ -40,7 +45,7 @@ const BasicTable = (props) => {
     fetchDetail();
   }, []);
 
-  // **************** SORTING *********************
+  // **************** SORTING LOGIC *********************
 
   const sorting = () => {
     if (order === "ASC") {
@@ -49,6 +54,7 @@ const BasicTable = (props) => {
       });
       setUser(sorted);
       setOrder("DSC");
+      setFilteredData(filterAllData(sorted, currentPage, postsPerPage));
     }
 
     if (order === "DSC") {
@@ -57,6 +63,7 @@ const BasicTable = (props) => {
       });
       setUser(sorted);
       setOrder("ASC");
+      setFilteredData(filterAllData(sorted, currentPage, postsPerPage));
     }
   };
 
@@ -68,6 +75,7 @@ const BasicTable = (props) => {
       });
       setUser(sorted);
       setOrder("DSC");
+      setFilteredData(filterAllData(sorted, currentPage, postsPerPage));
     }
 
     if (order === "DSC") {
@@ -76,6 +84,7 @@ const BasicTable = (props) => {
       });
       setUser(sorted);
       setOrder("ASC");
+      setFilteredData(filterAllData(sorted, currentPage, postsPerPage));
     }
   };
 
@@ -90,13 +99,26 @@ const BasicTable = (props) => {
   //   setPage(0);
   // };
 
+  // ===================updated pagination====================
+  const paginate = (event, pageNumber) => {
+    console.log("pagenumber ", pageNumber);
 
-  // const indexOfLastPost = currentPage * postsPerPage;
-  // const indexOfFirstPost = indexOfLastPost - postsPerPage;
-  
+    setFilteredData(filterAllData(user, pageNumber, postsPerPage));
 
-  const paginate = pageNumber => setCurrentPage(pageNumber);
+    setCurrentPage(pageNumber);
+  };
 
+  const filterAllData = (data, newPage, rowsPerPage) => {
+    const filteredData = data.filter((element, key) => {
+      if (
+        key < newPage * rowsPerPage &&
+        key >= newPage * rowsPerPage - rowsPerPage
+      ) {
+        return element;
+      }
+    });
+    return filteredData;
+  };
 
   // ===================== searching=====================
 
@@ -104,11 +126,11 @@ const BasicTable = (props) => {
     const search = event.target.value;
 
     if (search.length > 0) {
-      const newSearch = user.filter((val) => {
+      const newSearch = filteredData.filter((val) => {
         return val.title.toLowerCase().includes(search.toLowerCase());
       });
-      setUser(newSearch);
       setInput(search);
+      setFilteredData(filterAllData(newSearch, currentPage, postsPerPage));
     } else {
       fetchDetail();
     }
@@ -169,20 +191,19 @@ const BasicTable = (props) => {
         </TableHead>
 
         <TableBody>
-          {/* .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage) */}
-          {user
-            .slice(currentPage * postsPerPage, currentPage * postsPerPage + postsPerPage)
-            .map((item) => (
-              <TableRow key={item.id}>
-                <TableCell>{item.id}</TableCell>
-                <TableCell>{item.userId}</TableCell>
-                <TableCell>{item.title}</TableCell>
-                <TableCell>{item.completed.toString()}</TableCell>
-              </TableRow>
-            ))}
+          {filteredData.map((item) => (
+            <TableRow key={item.id}>
+              <TableCell>{item.id}</TableCell>
+              <TableCell>{item.userId}</TableCell>
+              <TableCell>{item.title}</TableCell>
+              <TableCell>{item.completed.toString()}</TableCell>
+            </TableRow>
+          ))}
         </TableBody>
       </Table>
-{/* 
+
+      {/* old pagination  */}
+      {/* 
       <CustomTablePagination
         rowsPerPageOptions={[5, 10, 25, { label: "All", value: -1 }]}
         colSpan={3}
@@ -197,17 +218,12 @@ const BasicTable = (props) => {
         onPageChange={handleChangePage}
         onRowsPerPageChange={handleChangeRowsPerPage}
       /> */}
-      {/* <Stack spacing={2}>
-        <Pagination count={10} />{" "}
-      </Stack> */}
 
+      {/* new pagination  */}
 
-     <Pagination
-        postsPerPage={postsPerPage}
-        totalPosts={user.length}
-        paginate={paginate}
-      />
-      
+      <Stack spacing={2}>
+        <Pagination count={user.length / postsPerPage} onChange={paginate} />{" "}
+      </Stack>
     </>
   );
 };
